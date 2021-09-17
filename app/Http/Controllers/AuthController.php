@@ -6,8 +6,13 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Str;
 use App\Models\User;
+use App\Models\Office;
+use App\Mail\SendForgotPassword;
+use Illuminate\Support\Facades\Mail;
 
 class AuthController extends Controller
 {
@@ -49,6 +54,14 @@ class AuthController extends Controller
                 return response()->json($respon, 200);
             }
 
+            if($user->status == 'rejected'){
+                $respon = [
+                    'status' => 'failed',
+                    'msg' => "Your requested account has been rejected",
+                ];
+                return response()->json($respon, 200);
+            }
+
             $tokenResult = $user->createToken('token-auth')->plainTextToken;
             $respon = [
                 'status' => 'success',
@@ -68,6 +81,15 @@ class AuthController extends Controller
 
     public function logout(Request $request) {
         $user = $request->user();
+        if(!$user){
+            $respon = [
+                'status' => 'error',
+                'msg' => "Auth user doesn't exist. Please check your token",
+                'errors' => null,
+                'content' => null,
+            ];
+            return response()->json($respon, 200);
+        }
         $user->currentAccessToken()->delete();
         $respon = [
             'status' => 'success',
@@ -80,50 +102,136 @@ class AuthController extends Controller
 
     public function register(Request $request)
     {
-        $validatedData = $request->validate([
+        $validatedData = \Validator::make($request->all(), [
+            'name' => 'required|string',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8',
         ]);
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $validatedData['email'],
-            'password' => Hash::make($validatedData['password']),
-            'is_admin' => '0',
-        ]);
+        if ($validatedData->fails()) {
+            $respon = [
+                'status' => 'error',
+                'msg' => 'Validator error',
+                'errors' => $validatedData->errors(),
+                'content' => null,
+            ];
+            return response()->json($respon, 200);
+        }
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+        $user = User::create([
+            'uid' => Str::uuid(),
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'office_id' => Office::all()->first()->id,
+            'status' => 'unverified',
+            'role' => 'user',
+        ]);
 
         return response()->json([
             'status' => 'success',
-            'msg' => 'Registered successfully',
+            'msg' => 'Registered successfully. Please wait for your account to be verified',
             'errors' => null,
-            'access_token' => $token,
-            'token_type' => 'Bearer',
         ]);
     }
 
     public function forgot(Request $request)
     {
+        $validatedData = \Validator::make($request->all(), [
+            'email' => 'required|string|email',
+        ]);
+
+        if ($validatedData->fails()) {
+            $respon = [
+                'status' => 'error',
+                'msg' => 'Validator error',
+                'errors' => $validatedData->errors(),
+                'content' => null,
+            ];
+            return response()->json($respon, 200);
+        }
+
         $user = User::where('email', $request->email)->first();
         if (!$user) {
-            $error_message = "Your email address was not found.";
+            $error_message = "Email doesn't exist";
             return response()->json(['success' => false, 'error' => ['email'=> $error_message]], 401);
         }
 
-        try {
-            Password::sendResetLink(
-                $request->only('email')
-            );
+        $token = rand(100000,999999);
+        // dd($token);
+        DB::table('password_resets')->insert([
+            'email' => $user->email,
+            'token' => Hash::make($token),
+            'created_at' => now(),
+        ]);
 
-        } catch (\Exception $e) {
-            //Return with error
-            $error_message = $e->getMessage();
-            return response()->json(['success' => false, 'error' => $error_message], 401);
-        }
+        Mail::to($user->email)->send(new SendForgotPassword($token));
 
         return response()->json([
             'success' => true, 'data'=> ['message'=> 'A reset email has been sent! Please check your email.']
         ]);
+    }
+
+    public function reset(Request $request)
+    {
+        $validatedData = \Validator::make($request->all(), [
+            'email' => 'required|string|email',
+            'token' => 'required|min:6|max:6',
+            'password' => 'required|string|min:8',
+            'confirm_password' => 'required|string|min:8',
+        ]);
+
+        if ($validatedData->fails()) {
+            $respon = [
+                'status' => 'error',
+                'msg' => 'Validator error',
+                'errors' => $validatedData->errors(),
+                'content' => null,
+            ];
+            return response()->json($respon, 200);
+        }
+
+        if($request->password != $request->confirm_password){
+            $respon = [
+                'status' => 'error',
+                'msg' => 'Confirmation error',
+                'errors' => "Password confirmation doesn't match the password",
+                'content' => null,
+            ];
+            return response()->json($respon, 200);
+        }
+
+        $user = User::where('email', $request->email)->first();
+        if (!$user) {
+            $error_message = "Email doesn't exist";
+            return response()->json(['success' => false, 'error' => ['email'=> $error_message]], 401);
+        }
+
+        $reset = DB::table('password_resets')->where('email', $request->email)->latest()->first();
+
+        if (! \Hash::check($request->token, $reset->token, [])) {
+            $respon = [
+                'status' => 'failed',
+                'msg' => "OTP token doesn't match",
+            ];
+            return response()->json($respon, 200);
+        }
+
+        User::where('email', $request->email)->update([
+            'password' => Hash::make($request->password),
+        ]);
+
+        DB::table('password_resets')->where([
+            ['email', $request->email],
+            ['token', $reset->token],
+        ])->delete();
+
+        $respon = [
+            'status' => 'success',
+            'msg' => 'Your password has been changed successfully',
+            'errors' => null,
+            'content' => null,
+        ];
+        return response()->json($respon, 200);
     }
 }
