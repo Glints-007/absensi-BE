@@ -165,4 +165,31 @@ class UserController extends Controller
             'errors' => null,
         ]);
     }
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  \App\Models\User  $user
+     * @return \Illuminate\Http\Response
+     */
+    public function destroy(Request $request, User $user)
+    {
+        if($request->user()->role != 'admin'){
+            $respon = [
+                'status' => 'error',
+                'msg' => 'authorization error',
+                'errors' => 'You are not authorized to do this command',
+                'content' => null,
+            ];
+            return response()->json($respon, 403);
+        }
+
+        $user->delete();
+
+        return response()->json([
+            'status' => 'success',
+            'msg' => 'User account has been removed successfully',
+            'errors' => null,
+        ]);
+    }
 }
