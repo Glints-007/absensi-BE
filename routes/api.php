@@ -30,4 +30,5 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('v1/users/{user}', [App\Http\Controllers\UserController::class, 'show']);
     Route::put('v1/users/{user}/verify', [App\Http\Controllers\UserController::class, 'verify']);
     Route::put('v1/users/{user}/reject', [App\Http\Controllers\UserController::class, 'reject']);
+    Route::delete('v1/users/{user}', [App\Http\Controllers\UserController::class, 'destroy']);
 });
