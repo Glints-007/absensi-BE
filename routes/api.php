@@ -14,15 +14,24 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-});
+Route::prefix('v1')->group(function () {
+    Route::post('login', [App\Http\Controllers\AuthController::class, 'login']);
+    Route::post('register', [App\Http\Controllers\AuthController::class, 'register']);
+    Route::post('forgot', [App\Http\Controllers\AuthController::class, 'forgot']);
+    Route::post('reset', [App\Http\Controllers\AuthController::class, 'reset']);
 
-Route::post('v1/login', [App\Http\Controllers\AuthController::class, 'login']);
-Route::post('v1/register', [App\Http\Controllers\AuthController::class, 'register']);
-Route::post('v1/forgot', [App\Http\Controllers\AuthController::class, 'forgot']);
-Route::post('v1/reset', [App\Http\Controllers\AuthController::class, 'reset']);
-
-Route::group(['middleware' => ['auth:sanctum']], function () {
-    Route::post('v1/logout', [App\Http\Controllers\AuthController::class, 'logout']);
+    Route::group(['middleware' => ['auth:sanctum']], function () {
+        Route::get('user-auth', function (Request $request) {
+            return $request->user();
+        });
+        Route::post('logout', [App\Http\Controllers\AuthController::class, 'logout']);
+        Route::group(['middleware' => ['admin']], function () {
+            Route::resource('users', App\Http\Controllers\UserController::class, [
+                'only' => ['index', 'show', 'destroy']
+            ]);
+            Route::get('users/{status}', [App\Http\Controllers\UserController::class, 'indexWithStatus']);
+            Route::put('users/{user}/verify', [App\Http\Controllers\UserController::class, 'verify']);
+            Route::put('users/{user}/reject', [App\Http\Controllers\UserController::class, 'reject']);
+        });
+    });
 });
