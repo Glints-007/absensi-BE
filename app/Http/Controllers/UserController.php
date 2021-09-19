@@ -14,10 +14,6 @@ class UserController extends Controller
      */
     public function index(Request $request)
     {
-        $role = role_check($request);
-        if($role){
-            return $role;
-        }
         return User::where('role', 'user')->get();
     }
 
@@ -28,11 +24,6 @@ class UserController extends Controller
      */
     public function indexWithStatus(Request $request, $status)
     {
-        role_check($request);
-        $role = role_check($request);
-        if($role){
-            return $role;
-        }
         return User::where([
             ['role', 'user'],
             ['status', $status],
@@ -47,10 +38,9 @@ class UserController extends Controller
      */
     public function show(Request $request, User $user)
     {
-        $role = role_check($request);
         $check = user_check($user);
-        if($role || $check){
-            return $role ?? $check;
+        if($check){
+            return $check;
         }
         return $user;
     }
@@ -64,11 +54,10 @@ class UserController extends Controller
      */
     public function verify(Request $request, User $user)
     {
-        $role = role_check($request);
         $check = user_check($user);
         $status = status_check($user);
-        if($role || $check || $status){
-            return $role ?? $check ?? $status;
+        if($check || $status){
+            return $check ?? $status;
         }
 
         $user->status = 'verified';
@@ -90,11 +79,10 @@ class UserController extends Controller
      */
     public function reject(Request $request, User $user)
     {
-        $role = role_check($request);
         $check = user_check($user);
         $status = status_check($user);
-        if($role || $check || $status){
-            return $role ?? $check ?? $status;
+        if($check || $status){
+            return $check ?? $status;
         }
 
         $user->status = 'rejected';
@@ -115,10 +103,9 @@ class UserController extends Controller
      */
     public function destroy(Request $request, User $user)
     {
-        $role = role_check($request);
         $check = user_check($user);
-        if($role || $check){
-            return $role ?? $check;
+        if($check){
+            return $check;
         }
 
         $user->delete();
