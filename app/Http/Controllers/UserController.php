@@ -14,14 +14,9 @@ class UserController extends Controller
      */
     public function index(Request $request)
     {
-        if($request->user()->role != 'admin'){
-            $respon = [
-                'status' => 'error',
-                'msg' => 'authorization error',
-                'errors' => 'You are not authorized to do this command',
-                'content' => null,
-            ];
-            return response()->json($respon, 403);
+        $role = role_check($request);
+        if($role){
+            return $role;
         }
         return User::where('role', 'user')->get();
     }
@@ -33,14 +28,10 @@ class UserController extends Controller
      */
     public function indexWithStatus(Request $request, $status)
     {
-        if($request->user()->role != 'admin'){
-            $respon = [
-                'status' => 'error',
-                'msg' => 'authorization error',
-                'errors' => 'You are not authorized to do this command',
-                'content' => null,
-            ];
-            return response()->json($respon, 403);
+        role_check($request);
+        $role = role_check($request);
+        if($role){
+            return $role;
         }
         return User::where([
             ['role', 'user'],
@@ -56,14 +47,10 @@ class UserController extends Controller
      */
     public function show(Request $request, User $user)
     {
-        if($request->user()->role != 'admin'){
-            $respon = [
-                'status' => 'error',
-                'msg' => 'authorization error',
-                'errors' => 'You are not authorized to do this command',
-                'content' => null,
-            ];
-            return response()->json($respon, 403);
+        $role = role_check($request);
+        $check = user_check($user);
+        if($role || $check){
+            return $role ?? $check;
         }
         return $user;
     }
@@ -77,34 +64,11 @@ class UserController extends Controller
      */
     public function verify(Request $request, User $user)
     {
-        if($request->user()->role != 'admin'){
-            $respon = [
-                'status' => 'error',
-                'msg' => 'authorization error',
-                'errors' => 'You are not authorized to do this command',
-                'content' => null,
-            ];
-            return response()->json($respon, 403);
-        }
-
-        if($user->status == 'verified'){
-            $respon = [
-                'status' => 'error',
-                'msg' => 'verification error',
-                'errors' => 'User account has been verified. No changes needed',
-                'content' => null,
-            ];
-            return response()->json($respon, 200);
-        }
-
-        if($user->status == 'rejected'){
-            $respon = [
-                'status' => 'error',
-                'msg' => 'verification error',
-                'errors' => 'User account has been rejected. No changes allowed',
-                'content' => null,
-            ];
-            return response()->json($respon, 200);
+        $role = role_check($request);
+        $check = user_check($user);
+        $status = status_check($user);
+        if($role || $check || $status){
+            return $role ?? $check ?? $status;
         }
 
         $user->status = 'verified';
@@ -126,34 +90,11 @@ class UserController extends Controller
      */
     public function reject(Request $request, User $user)
     {
-        if($request->user()->role != 'admin'){
-            $respon = [
-                'status' => 'error',
-                'msg' => 'authorization error',
-                'errors' => 'You are not authorized to do this command',
-                'content' => null,
-            ];
-            return response()->json($respon, 403);
-        }
-
-        if($user->status == 'verified'){
-            $respon = [
-                'status' => 'error',
-                'msg' => 'verification error',
-                'errors' => 'User account has been verified. No changes allowed',
-                'content' => null,
-            ];
-            return response()->json($respon, 200);
-        }
-
-        if($user->status == 'rejected'){
-            $respon = [
-                'status' => 'error',
-                'msg' => 'verification error',
-                'errors' => 'User account has been rejected. No changes needed',
-                'content' => null,
-            ];
-            return response()->json($respon, 200);
+        $role = role_check($request);
+        $check = user_check($user);
+        $status = status_check($user);
+        if($role || $check || $status){
+            return $role ?? $check ?? $status;
         }
 
         $user->status = 'rejected';
@@ -174,14 +115,10 @@ class UserController extends Controller
      */
     public function destroy(Request $request, User $user)
     {
-        if($request->user()->role != 'admin'){
-            $respon = [
-                'status' => 'error',
-                'msg' => 'authorization error',
-                'errors' => 'You are not authorized to do this command',
-                'content' => null,
-            ];
-            return response()->json($respon, 403);
+        $role = role_check($request);
+        $check = user_check($user);
+        if($role || $check){
+            return $role ?? $check;
         }
 
         $user->delete();
