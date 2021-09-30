@@ -28,6 +28,6 @@ class Clock extends Model
 
     public static function TodayClock($uid)
     {
-        return self::where('uid', $uid)->whereDate('created_at', now())->first();
+        return self::where('user_id', $uid)->whereDate('created_at', now())->first();
     }
 }
