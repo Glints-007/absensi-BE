@@ -37,10 +37,11 @@ class ClockController extends Controller
     public function store(Request $request)
     {
         if(check_distance($request)){
-            if(Clock::TodayClock()){
+            $clock = Clock::TodayClock();
+            if($clock){
                 return response()->json([
                     'status' => 'error',
-                    'msg' => 'You\'re only allowed to clock in once per day',
+                    'msg' => 'You\'ve already clocked in at '.$clock->clock_in,
                     'errors' => null,
                 ]);
             }
@@ -102,7 +103,7 @@ class ClockController extends Controller
                 if($clock->clock_out){
                     return response()->json([
                         'status' => 'error',
-                        'msg' => 'You\'ve been clocked out for today. Once per day allowed',
+                        'msg' => 'You\'ve already clocked out at '.$clock->clock_out,
                         'errors' => null,
                     ]);
                 }
