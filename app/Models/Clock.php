@@ -26,8 +26,8 @@ class Clock extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    public static function TodayClock()
+    public static function TodayClock($uid)
     {
-        return self::whereDate('created_at', now())->first();
+        return self::where('uid', $uid)->whereDate('created_at', now())->first();
     }
 }

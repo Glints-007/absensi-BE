@@ -37,7 +37,7 @@ class ClockController extends Controller
     public function store(Request $request)
     {
         if(check_distance($request)){
-            $clock = Clock::TodayClock();
+            $clock = Clock::TodayClock($request->user()->uid);
             if($clock){
                 return response()->json([
                     'status' => 'error',
@@ -97,7 +97,7 @@ class ClockController extends Controller
      */
     public function update(Request $request)
     {
-        $clock = Clock::TodayClock();
+        $clock = Clock::TodayClock($request->user()->uid);
         if($clock){
             if(check_distance($request)){
                 if($clock->clock_out){
