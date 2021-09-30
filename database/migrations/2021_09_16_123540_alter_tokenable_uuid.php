@@ -26,6 +26,8 @@ class AlterTokenableUuid extends Migration
      */
     public function down()
     {
-        //
+        Schema::table('personal_access_tokens', function (Blueprint $table) {
+            $table->bigInteger('tokenable_id')->change();
+        });
     }
 }

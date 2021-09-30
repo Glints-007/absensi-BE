@@ -25,6 +25,8 @@ class AlterClockUid extends Migration
      */
     public function down()
     {
-        //
+        Schema::table('clocks', function (Blueprint $table) {
+            $table->bigInteger('user_id')->change();
+        });
     }
 }

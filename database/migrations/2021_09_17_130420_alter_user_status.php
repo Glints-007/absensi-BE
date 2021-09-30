@@ -24,6 +24,6 @@ class AlterUserStatus extends Migration
      */
     public function down()
     {
-        //
+        DB::statement("ALTER TABLE users MODIFY COLUMN status ENUM('unverified', 'verified')");
     }
 }
