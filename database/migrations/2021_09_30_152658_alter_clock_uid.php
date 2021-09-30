@@ -3,9 +3,8 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\DB;
 
-class AlterUserStatus extends Migration
+class AlterClockUid extends Migration
 {
     /**
      * Run the migrations.
@@ -14,7 +13,9 @@ class AlterUserStatus extends Migration
      */
     public function up()
     {
-        DB::statement("ALTER TABLE users MODIFY COLUMN status ENUM('unverified', 'verified', 'rejected')");
+        Schema::table('clocks', function (Blueprint $table) {
+            $table->uuid('user_id')->change();
+        });
     }
 
     /**
@@ -24,6 +25,8 @@ class AlterUserStatus extends Migration
      */
     public function down()
     {
-        DB::statement("ALTER TABLE users MODIFY COLUMN status ENUM('unverified', 'verified')");
+        Schema::table('clocks', function (Blueprint $table) {
+            $table->bigInteger('user_id')->change();
+        });
     }
 }
