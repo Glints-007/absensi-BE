@@ -25,6 +25,9 @@ Route::prefix('v1')->group(function () {
             return $request->user();
         });
         Route::post('logout', [App\Http\Controllers\AuthController::class, 'logout']);
+        Route::get('clock-history', [App\Http\Controllers\ClockController::class, 'index']);
+        Route::post('clock-in', [App\Http\Controllers\ClockController::class, 'store']);
+        Route::put('clock-out', [App\Http\Controllers\ClockController::class, 'update']);
         Route::group(['middleware' => ['admin']], function () {
             Route::resource('users', App\Http\Controllers\UserController::class, [
                 'only' => ['index', 'show', 'destroy']
