@@ -37,7 +37,7 @@ class ClockController extends Controller
     public function store(Request $request)
     {
         if(check_distance($request)){
-            if(Clock::whereDate('created_at', now())->first()){
+            if(Clock::TodayClock()){
                 return response()->json([
                     'status' => 'error',
                     'msg' => 'You\'re only allowed to clock in once per day',
@@ -96,7 +96,7 @@ class ClockController extends Controller
      */
     public function update(Request $request)
     {
-        $clock = Clock::whereDate('created_at', now())->first();
+        $clock = Clock::TodayClock();
         if($clock){
             if(check_distance($request)){
                 if($clock->clock_out){
