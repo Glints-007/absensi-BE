@@ -32,6 +32,7 @@ Route::prefix('v1')->group(function () {
             Route::resource('users', App\Http\Controllers\UserController::class, [
                 'only' => ['index', 'show', 'destroy']
             ]);
+            Route::get('user-absent', [App\Http\Controllers\UserController::class, 'absent']);
             Route::get('users/{status}', [App\Http\Controllers\UserController::class, 'indexWithStatus']);
             Route::put('users/{user}/verify', [App\Http\Controllers\UserController::class, 'verify']);
             Route::put('users/{user}/reject', [App\Http\Controllers\UserController::class, 'reject']);
