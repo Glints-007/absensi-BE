@@ -28,6 +28,7 @@ class User extends Authenticatable
         'office_id',
         'status',
         'role',
+        'absent',
     ];
 
     /**
@@ -56,7 +57,12 @@ class User extends Authenticatable
 
     public function clock()
     {
-        return $this->hasMany(Clock::class, 'user_id');
+        return $this->hasMany(Clock::class,'user_id' ,'uid');
+    }
+
+    public static function absent()
+    {
+        return self::where('role', 'user')->where('absent', '>=', 3)->get();
     }
 
     public static function boot() {
