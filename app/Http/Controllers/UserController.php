@@ -31,6 +31,16 @@ class UserController extends Controller
     }
 
     /**
+     * Display a listing of users who's absent for more than 3 days in this month.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function absent(Request $request)
+    {
+        return User::absent();
+    }
+
+    /**
      * Display the specified resource.
      *
      * @param  \App\Models\User  $user
@@ -44,6 +54,7 @@ class UserController extends Controller
         }
         return $user;
     }
+
 
     /**
      * Approve user registration account.
