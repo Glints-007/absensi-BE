@@ -127,6 +127,7 @@ class AuthController extends Controller
             'office_id' => Office::all()->first()->id,
             'status' => 'unverified',
             'role' => 'user',
+            'absent' => 0,
         ]);
 
         return response()->json([
