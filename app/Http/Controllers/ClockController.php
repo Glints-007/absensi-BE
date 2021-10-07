@@ -36,7 +36,25 @@ class ClockController extends Controller
      */
     public function store(Request $request)
     {
-        if(check_distance($request)){
+        $validatedData = \Validator::make($request->all(), [
+            'lat' => 'required',
+            'long' => 'required',
+        ]);
+
+        if ($validatedData->fails()) {
+            $respon = [
+                'status' => 'error',
+                'msg' => 'Validator error',
+                'errors' => $validatedData->errors(),
+                'content' => null,
+            ];
+            return response()->json($respon, 200);
+        }
+        $check = check_distance($request);
+        if(gettype($check) != 'boolean'){
+            return $check;
+        }
+        if($check){
             $clock = Clock::TodayClock($request->user()->uid);
             if($clock){
                 return response()->json([
@@ -97,6 +115,20 @@ class ClockController extends Controller
      */
     public function update(Request $request)
     {
+        $validatedData = \Validator::make($request->all(), [
+            'lat' => 'required',
+            'long' => 'required',
+        ]);
+
+        if ($validatedData->fails()) {
+            $respon = [
+                'status' => 'error',
+                'msg' => 'Validator error',
+                'errors' => $validatedData->errors(),
+                'content' => null,
+            ];
+            return response()->json($respon, 200);
+        }
         $clock = Clock::TodayClock($request->user()->uid);
         if($clock){
             if(check_distance($request)){
