@@ -43,7 +43,13 @@ function check_distance(Request $request){
                 'destinations'     => $office->lat.', '.$office->long,
                 'origins'     => $request->lat.', '.$request->long,
             ])->get('rows');
-
+    if($response['rows'][0]['elements'][0]['status'] == 'ZERO_RESULTS'){
+        return response()->json([
+            'status' => 'error',
+            'msg' => 'Can\'t check the distance. User\'s location is exceeding the limit.',
+            'errors' => 'Distance undefined',
+        ]);
+    }
     if($response['rows'][0]['elements'][0]['distance']['value'] <= 100){
         return true;
     }
